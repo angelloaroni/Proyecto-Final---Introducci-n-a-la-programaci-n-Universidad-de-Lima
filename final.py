@@ -1,9 +1,8 @@
 import random
+import os
 
-
-def Menu():
-    serviciosSet = set()
-    listaServicios = []
+def Menu(serviciosSet, listaServicios, listaVentas):
+    
     
     while True: 
         print("---SISTEMA DE ADMINISTRACIÓN DE SERVICIOS---")
@@ -26,23 +25,34 @@ def Menu():
             print("---Gracias por hacer uso del sistema---")
             break
         elif accion == 1:
+            if len(serviciosSet) == 3:
+                print("---------------------------------------------\nHa alcanzado la cantidad máxima de servicios posibles a registrar\n---------------------------------------------")
 
             añadir = True
             while añadir != "no" and len(serviciosSet) < 3:
             
                 servicio, serviciosSet = IngresarServicio(serviciosSet)
-                listaServicios.append(servicio)
-                
+                listaServicios.append(servicio)           
                 if len(serviciosSet) == 3:
                     break
                 añadir = input("Desea anadir otro servicio (si/no): ")
 
-            print("---------------------------------------------\nHa alcanzado la cantidad máxima de servicios posibles a registrar\n---------------------------------------------")
-  
         elif accion == 2:
-            RegistrarVenta(serviciosSet, listaServicios)
+
+            listaVentas = RegistrarVenta(serviciosSet, listaServicios, listaVentas)
+            print(listaVentas)
+
         elif accion == 3:
-            pass
+            listaVentas = ModificarVenta(listaVentas)
+        elif accion == 4:
+            listaVentas = OrdenarVentas(listaVentas)
+        elif accion == 5:
+            MostrarDatosDeVenta(listaVentas)
+        elif accion == 6:
+            TotalMasAlto(listaVentas)
+        elif accion == 7:
+            InformaciónEnArchivo(listaVentas)
+
 def generarInformacion(servicioIngresado):
         
         servicio = {
@@ -56,7 +66,9 @@ def generarInformacion(servicioIngresado):
 
         #no entiendo como se supone que se sepa si hay beneficio o no, lo calculo de manera aleatorio pero facilmente puede adaptarse a un input
         beneficio = random.choice([True, False])
-        
+
+        #solo cambia la descripcion y precio entre los 3 productos, no tocar nada de aqui
+        #las variables que no aparezcan aqui son "constatntes" dentro de la funcion    
         if beneficio == True: beneficio = "Si"
         else: beneficio = "No"
         if servicioIngresado.lower() == "viaje nacional":
@@ -86,13 +98,32 @@ def generarInformacion(servicioIngresado):
         servicio["Descripción"] = descripcion
         servicio["Beneficio"] = beneficio
         servicio["Precio"] = precio
-
-        return servicio
     
+        #servicion es UN SOLO diccionario, fuera de esta funcion se añade a la lista
+        return servicio
+
+def OrdenamientoBrubuja(listaVentas):
+
+    if len(listaVentas) == 0:
+        print("No existen ventas registradas en el sistemas")
+    elif len(listaVentas) == 1:
+        return listaVentas
+    
+    #print(sorted(listaVentas, key=lambda k: k["Total de la venta"], reverse=True))
+    for i in range(len(listaVentas)-1):
+        for j in range(len(listaVentas)-i-1):
+            if listaVentas[j]["Total de la venta"] < listaVentas[j+1]["Total de la venta"]:
+                aux = listaVentas[j]
+                listaVentas[j] = listaVentas[j+1]
+                listaVentas[j+1] = aux
+
+def quicksort(listaventas):
+    pass
 def IngresarServicio(serviciosSet):
          
         print("Ingrese que tipo de serviio desea registrar (Viaje nacional, Viaje internacional, Paquete turístico)")
-
+    
+        #no tocar nada en esta funcion
         servicioIngresado = input("Nombre del servicio: ")
         while servicioIngresado.lower() in serviciosSet:
             print("Este servicio ya ha sido ingresado con anterioridad, por favor, eliga otro")
@@ -102,59 +133,196 @@ def IngresarServicio(serviciosSet):
             print("Servicio no valido")
             servicioIngresado = input("Nombre del servicio: ")
         serviciosSet.add(servicioIngresado)
-
+    
+        #no tocar
         servicio = generarInformacion(servicioIngresado)
         print(servicio)
 
         return servicio, serviciosSet
 
 
-def RegistrarVenta(servicioSet, listaServicios):
+def RegistrarVenta(servicioSet, listaServicios, listaVentas):
     #este codigo es correlativo, la funcion venta aun no esta hecha, sospecho que va a tener que estar
     #fuera de esta funcion, y su numero tendra que trabajarse desde la parte de Menu()
+    #tener en cuenta que para el sistema de ventas necesito diccionario con las ventas, que tenga numeroVenta correlativo, aca dice precio sin IGV, luego
+    # precio teniendo en cuenta beneficio tributario (???), trabajarlo si hay beneficio tributario = NO IGV, cantidadVenta > 1 y < 10, totalVenta = precio*cantidad
+    # entiendo ventas de un solo producto, tratar de que el codigo sea adaptable en caso de poder venderse mas por mala explicaicon del profe
     
-    codigoventa = 10000
+
     #la cantidad de venta debe ser
     ventas = [] 
     
     
-    if len(servicioSet) == 0:
+    
+    if len(listaServicios) == 0:
         print("No hay servicios registrados, por favor, primero ingrese los servicios antes de empezar con las ventas")
         return
-    productoVenta = (input("Introduce el nombre del prodcto que deseas vender: "))
+    añadir = True
+    while añadir != "no":
+        productoVenta = (input(f"Introduce el nombre del prodcto que deseas vender: "))
+
+        while  productoVenta not in servicioSet:
+            print("El producto que quiere vendeer no se encuentra registrado, ingrese otro")
+            productoVenta = input("Introduce el nombre del prodcto que deseas vender: ")
+
+        #la cantidad de venta no debe ser mayor a 10 ni menor a 0
     
-    if productoVenta not in servicioSet:
-        print("El producto que quiere vendeer no se encuentra registrado, ingrese otro")
-        productoVenta = input("Introduce el nombre del prodcto que deseas vender: ")
-    
-    #la cantidad de venta no debe ser mayor a 10 ni menor a 0
-    
-    cantidadVenta = int(input(f"Ingrese la cantidad de {productoVenta} que se va a vender: "))
-    while cantidadVenta < 0 or cantidadVenta > 10:
-        print("La cantida de venta no debe exceder las 10 unidades por venta, ni ser menor a 0")
         cantidadVenta = int(input(f"Ingrese la cantidad de {productoVenta} que se va a vender: "))
+        while cantidadVenta < 0 or cantidadVenta > 10:
+            print("La cantida de venta no debe exceder las 10 unidades por venta, ni ser menor a 0")
+            cantidadVenta = int(input(f"Ingrese la cantidad de {productoVenta} que se va a vender: "))
         
-    for diccionario in listaServicios:
-        diccionarioVenta = {
+        for diccionario in listaServicios:
+            diccionarioVenta = {
         
-    }
-        if diccionario["Servicio"].lower() == productoVenta.lower():
-            precio = diccionario["Precio"]
-            totalVenta = precio * cantidadVenta
+        }
+            if diccionario["Servicio"].lower() == productoVenta.lower():
+                preciosinIGV = diccionario["Precio"]
+                precioconIGV = preciosinIGV + 18/100 * preciosinIGV
+                totalVenta = precioconIGV * cantidadVenta
+                if diccionario["Beneficio"].lower() == "si":
+                    beneficio = "Tiene beneficio"
+                else:
+                    beneficio = "No tiene beneficio"
+
+                #si no existe la venta, se inicia en 10k
+                if len(listaVentas) == 0:
+                    numeroVenta = 1
+                else:
+                    #un poco extraño, no encontre otra forma de hacerlo, se busca la ultima venta registrada y se le suma 1 al codigo de esa venta
+                    #tuve problemas con la iniciacion de la variable xd, solo quedo esto
+                    numeroVenta = listaVentas[-1]["Codigo de venta"] + 1
             
-            diccionarioVenta["Servicio"] = diccionario["Servicio"]
-            diccionario["Total de la venta"] = totalVenta
-            diccionario["Codigo de venta"] = codigoventa
+
+                #un poco largo
+                diccionarioVenta["Servicio"] = diccionario["Servicio"]
+                diccionarioVenta["Beneficio"] = beneficio
+                diccionarioVenta["Precio de venta"] = precioconIGV
+                diccionarioVenta["Unidades vendidas"] = cantidadVenta
+                diccionarioVenta["Total de la venta"] = round(totalVenta, 3)
+                diccionarioVenta["Codigo de venta"] = numeroVenta
+                listaVentas.append(diccionarioVenta)
+
+        añadir = input("¿Desea añadir otra venta? (si/no): ") 
+    return listaVentas
+
+def ModificarVenta(listaVentas):
+    #esto esta mal, tiene que ser cno busqueda binaria y quicksort(zzz)
+    codigos = []
+
+    for venta in listaVentas:
+        codigos.append(venta["Codigo de venta"])
+
+    if len(codigos) == 0:
+        print("No existen ventas registradas, por lo que no hay codigos para modificar")
+        return listaVentas
+
+    codigoModificar = int(input("Ingrese el codigo de la venta que desea modificar: "))
+    while codigoModificar not in codigos or codigoModificar <= 0:
+        print("No existe una venta registrada con ese código, por favor, ingrese tro")
+        codigoModificar = int(input("Ingrese el codigo de la venta que desea modificar: "))
+
+    for venta in listaVentas:
+        if venta["Codigo de venta"] == codigoModificar:
+
+            nuevaCantidadVenta = int(input("Ingrese la nueva cantidad de la venta: "))
+            while nuevaCantidadVenta < 0 and nuevaCantidadVenta > 10:
+                nuevaCantidadVenta = int(input("Ingrese la nueva cantidad de la venta: "))
+            venta["Unidades vendidas"] = nuevaCantidadVenta
+            venta["Total de la venta"] = venta["Precio de venta"] * nuevaCantidadVenta
+
+
+    return listaVentas
             
-            codigoventa += 1
+def OrdenarVentas(listaVentas):
+
+    listaVentas = OrdenamientoBrubuja(listaVentas)
+
+    print("-----------------------------------")
+    print("Se ha ordenado con exito la lista")
+    print("-----------------------------------")
+
+    return listaVentas
+
+def MostrarDatosDeVenta(listaVentas):
+    codigos = []
+
+    for venta in listaVentas:
+        codigos.append(venta["Codigo de venta"])
+
+    if len(codigos) == 0:
+        print("No existen ventas registradas aún")
+        return listaVentas
+
+    numeroVentaBuscado = int(input("Ingrese el numero de venta de la venta de la que desea ver la información: "))
+    while numeroVentaBuscado not in codigos or numeroVentaBuscado <= 0:
+        print("No existe una venta registrada con ese código, por favor, ingrese otro")
+        numeroVentaBuscado = int(input("Ingrese el codigo de la venta que desea modificar: "))
+
+    #piden usar busqueda secuencial
+    for venta in range(0, len(listaVentas)):
+        if (listaVentas[venta]["Codigo de venta"] == numeroVentaBuscado):
+            print("----------INFORMACIÓN DE LA VENTA----------\n")
+
+            print(f"Servicio vendido: {listaVentas[venta]['Servicio']}")
+            print(f"¿Tiene beneficio?: {listaVentas[venta]['Beneficio']}")
+            print(f"Precio de la venta (por unidad): {listaVentas[venta]['Precio de venta']}")
+            print(f"Cantidad de unidades vendidas: {listaVentas[venta]['Unidades vendidas']}")
+            print(f"Monto total de la venta: {listaVentas[venta]['Total de la venta']}")
+            print(f"Numero de venta: {listaVentas[venta]['Codigo de venta']}\n")
+            break
+
+def TotalMasAlto(listaVentas):
+    if len(listaVentas) == 0:
+        print("No existen ventas registradas en el sistemas")
+        return
+    listaVentas = OrdenamientoBrubuja(listaVentas)
+    print(f"\n---INFORMACIÓN DE LA VENTA CON EL TOTAL MAS ALTO---\n")
+
+    print(f"Servicio vendido: {listaVentas[0]['Servicio']}")
+    print(f"¿Tiene beneficio?: {listaVentas[0]['Beneficio']}")
+    print(f"Precio de la venta (por unidad): {listaVentas[0]['Precio de venta']}")
+    print(f"Cantidad de unidades vendidas: {listaVentas[0]['Unidades vendidas']}")
+    print(f"Monto total de la venta: {listaVentas[0]['Total de la venta']}")
+    print(f"Numero de venta: {listaVentas[0]['Codigo de venta']}\n")
+
+def InformaciónEnArchivo(listaVentas):
+    if len(listaVentas) == 0:
+        print("No hay información que se puede almacenar dentro de un archivo, por favor, primero ingrese una venta")
+        return
+    #no entiendo que se almacena aca, si la informacion de al ventas (me inclino a pensar esto) o la informacion general de los productos
+    #me parece correcto usar os pero supongo que es bueno consdeirar cambiarlo (quizas pc del profe o donde se vaya a exponer no se tenga instalada la libreria)
+    if  not os.path.exists("Ventas.txt"):
+        with open("Ventas.txt", "w") as archivo:
+            print("Se ha creado el archivo")
+    n = 1
+    with open("Ventas.txt", "w", encoding="utf-8") as archivo:
+        for venta in listaVentas:
+            archivo.write(f"------INFORMACIÓN DE LA {n}° VENTA ------\n\n")
+            archivo.write(f"Servicio vendido: {venta['Servicio']}\n")
+            archivo.write(f"¿Tiene beneficio?: {venta['Beneficio']}\n")
+            archivo.write(f"Precio de la venta (por unidad): {venta['Precio de venta']}\n")
+            archivo.write(f"Cantidad de unidades vendidas: {venta['Unidades vendidas']}\n")
+            archivo.write(f"Monto total de la venta: {venta['Total de la venta']}\n")
+            archivo.write(f"Numero de venta: {venta['Codigo de venta']}\n\n")
+            n += 1
+
+        
+
     
-    
 
-
-
-
-    
 
 if __name__ == "__main__":
+
+    serviciosSet = set()
+    listaServicios = []
+    listaVentas = []
     
-    Menu()
+    Menu(serviciosSet, listaServicios, listaVentas)
+
+
+
+
+#posibles errores, deberia verificar si es que pueden salir precios con decimales, algunos me estan tirando eso en los prints
+#existe una posibilidad de mejor en TODAS las opciones de (si/no)
+#aun falta cambiar la funcion de modificar venta, pero en general, no parece demasiado complicado, nada mas hay que añadir algunas algoritmos
