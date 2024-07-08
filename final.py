@@ -51,12 +51,36 @@ def Menu(serviciosSet, listaServicios, listaVentas):
             TotalMasAlto(listaVentas)
         elif accion == 7:
             InformaciónEnArchivo(listaVentas)
+
+def quicksort(listaVentas):
+    #debe ordenarse el codigo de venta porque en caso de ejecutase la funcion 4 anteriormente
+    #no va a ejecutar bien el codigo, la lista no estara ordenada
+    if len(listaVentas) <= 1:
+        return listaVentas
+    else:
+        tempPivot = listaVentas[0]
+        pivot = listaVentas[0]["Codigo de venta"]
+        menores = []
+        mayores = []
+        for i in range(1, len(listaVentas)):
+            if listaVentas[i]["Codigo de venta"] > pivot:
+                mayores.append(listaVentas[i])
+            else:
+                menores.append(listaVentas[i])
+            
+            menores = quicksort(menores)
+            mayores = quicksort(mayores)
+        
+        return menores + [tempPivot] + mayores
+        
 def busquedaBinaria(listaVentas):
     #debe retornar un index
     print(listaVentas)
-    listaCodigos = []
-    for venta in listaVentas:
-        listaCodigos.append(venta["Codigo de venta"])
+    listaCodigos = quicksort(listaVentas)
+    print("/**/*/*/*/*/*/*/")
+    print(listaCodigos)
+    # for venta in listaVentas:
+    #     listaCodigos.append(venta["Codigo de venta"])
 
     
     
@@ -65,9 +89,9 @@ def busquedaBinaria(listaVentas):
     buscado = int(input("Introduce el numero de venta de la venta que quiere modificar: "))
     while izq <= derecha:
         medio = (izq + derecha) // 2
-        if listaCodigos[medio] == buscado:
-            return medio 
-        elif listaCodigos[medio] < buscado:
+        if listaCodigos[medio]["Codigo de venta"] == buscado:
+            return medio, listaVentas 
+        elif listaCodigos[medio]["Codigo de venta"] < buscado:
             izq = medio + 1
         else:
             derecha = medio - 1
@@ -105,8 +129,12 @@ def generarInformacion(servicioIngresado):
 
         #solo cambia la descripcion y precio entre los 3 productos, no tocar nada de aqui
         #las variables que no aparezcan aqui son "constatntes" dentro de la funcion    
-        if beneficio == True: beneficio = "Si"
-        else: beneficio = "No"
+        beneficio = "No"
+        #no entiendo como se supone que se sepa si hay beneficio o no, lo calculo de manera aleatorio pero facilmente puede adaptarse a un input
+        # beneficio = random.choice([True, False])
+        tieneBeneficio = input("¿Tiene beneficio tributario?: (ingrese 'si' para indicar que cuenta con uno, cualquier otro valor para indicar que no): ")
+        if tieneBeneficio.lower() == "si":
+            beneficio = "Si"
         if servicioIngresado.lower() == "viaje nacional":
             descripcion = "El servicio de Viaje nacional, le permite a usted, llegar a cualquier departamento del país, para poder conocer las bellezas de Perú."
             precio = random.randint(150, 350)
@@ -233,8 +261,10 @@ def ModificarVenta(listaVentas):
         print("No existen ventas registradas aún")
         return listaVentas
     
-    index = busquedaBinaria(listaVentas)
-    
+    index, listaVentas = busquedaBinaria(listaVentas)
+    print(index)
+    print("*******")
+    print(listaVentas[index])
     if index == -1:
         print("No se encontró el número de venta buscado")
         return listaVentas
@@ -255,7 +285,7 @@ def ModificarVenta(listaVentas):
 def OrdenarVentas(listaVentas):
 
     listaVentas = OrdenamientoBrubuja(listaVentas)
-
+    #poner un print
     print("-----------------------------------")
     print("Se ha ordenado con exito la lista")
     print("-----------------------------------")
