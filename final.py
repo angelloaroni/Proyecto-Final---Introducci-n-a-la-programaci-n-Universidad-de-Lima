@@ -1,5 +1,4 @@
 import random
-import os
 
 def Menu(serviciosSet, listaServicios, listaVentas):
     
@@ -52,7 +51,44 @@ def Menu(serviciosSet, listaServicios, listaVentas):
             TotalMasAlto(listaVentas)
         elif accion == 7:
             InformaciónEnArchivo(listaVentas)
+def busquedaBinaria(listaVentas):
+    #debe retornar un index
+    print(listaVentas)
+    listaCodigos = []
+    for venta in listaVentas:
+        listaCodigos.append(venta["Codigo de venta"])
 
+    
+    
+    izq = 0
+    derecha = len(listaCodigos) - 1
+    buscado = int(input("Introduce el numero de venta de la venta que quiere modificar: "))
+    while izq <= derecha:
+        medio = (izq + derecha) // 2
+        if listaCodigos[medio] == buscado:
+            return medio 
+        elif listaCodigos[medio] < buscado:
+            izq = medio + 1
+        else:
+            derecha = medio - 1
+    return -1
+
+def OrdenamientoBrubuja(listaVentas):
+
+    if len(listaVentas) == 0:
+        print("No existen ventas registradas en el sistemas")
+    elif len(listaVentas) == 1:
+        return listaVentas
+    
+    #print(sorted(listaVentas, key=lambda k: k["Total de la venta"], reverse=True))
+    for i in range(len(listaVentas)-1):
+        for j in range(len(listaVentas)-i-1):
+            if listaVentas[j]["Total de la venta"] < listaVentas[j+1]["Total de la venta"]:
+                aux = listaVentas[j]
+                listaVentas[j] = listaVentas[j+1]
+                listaVentas[j+1] = aux
+
+    return listaVentas
 def generarInformacion(servicioIngresado):
         
         servicio = {
@@ -102,23 +138,9 @@ def generarInformacion(servicioIngresado):
         #servicion es UN SOLO diccionario, fuera de esta funcion se añade a la lista
         return servicio
 
-def OrdenamientoBrubuja(listaVentas):
 
-    if len(listaVentas) == 0:
-        print("No existen ventas registradas en el sistemas")
-    elif len(listaVentas) == 1:
-        return listaVentas
-    
-    #print(sorted(listaVentas, key=lambda k: k["Total de la venta"], reverse=True))
-    for i in range(len(listaVentas)-1):
-        for j in range(len(listaVentas)-i-1):
-            if listaVentas[j]["Total de la venta"] < listaVentas[j+1]["Total de la venta"]:
-                aux = listaVentas[j]
-                listaVentas[j] = listaVentas[j+1]
-                listaVentas[j+1] = aux
 
-def quicksort(listaventas):
-    pass
+
 def IngresarServicio(serviciosSet):
          
         print("Ingrese que tipo de serviio desea registrar (Viaje nacional, Viaje internacional, Paquete turístico)")
@@ -156,7 +178,7 @@ def RegistrarVenta(servicioSet, listaServicios, listaVentas):
     
     if len(listaServicios) == 0:
         print("No hay servicios registrados, por favor, primero ingrese los servicios antes de empezar con las ventas")
-        return
+        return listaVentas
     añadir = True
     while añadir != "no":
         productoVenta = (input(f"Introduce el nombre del prodcto que deseas vender: "))
@@ -207,32 +229,28 @@ def RegistrarVenta(servicioSet, listaServicios, listaVentas):
     return listaVentas
 
 def ModificarVenta(listaVentas):
-    #esto esta mal, tiene que ser cno busqueda binaria y quicksort(zzz)
-    codigos = []
+    if len(listaVentas) == 0:
+        print("No existen ventas registradas aún")
+        return listaVentas
+    
+    index = busquedaBinaria(listaVentas)
+    
+    if index == -1:
+        print("No se encontró el número de venta buscado")
+        return listaVentas
+    else:
+        nuevaCantidadVenta = int(input("Ingrese la nueva cantidad de la venta: "))
+        while nuevaCantidadVenta < 0 or nuevaCantidadVenta > 10:
+            nuevaCantidadVenta = int(input("La cantidad debe estar entre 0 y 10. Ingrese nuevamente: "))
+        
+        listaVentas[index]["Unidades vendidas"] = nuevaCantidadVenta
+        listaVentas[index]["Total de la venta"] = listaVentas[index]["Precio de venta"] * nuevaCantidadVenta
 
-    for venta in listaVentas:
-        codigos.append(venta["Codigo de venta"])
-
-    if len(codigos) == 0:
-        print("No existen ventas registradas, por lo que no hay codigos para modificar")
+        print("Venta modificada correctamente:")
+        print(listaVentas[index])
         return listaVentas
 
-    codigoModificar = int(input("Ingrese el codigo de la venta que desea modificar: "))
-    while codigoModificar not in codigos or codigoModificar <= 0:
-        print("No existe una venta registrada con ese código, por favor, ingrese tro")
-        codigoModificar = int(input("Ingrese el codigo de la venta que desea modificar: "))
 
-    for venta in listaVentas:
-        if venta["Codigo de venta"] == codigoModificar:
-
-            nuevaCantidadVenta = int(input("Ingrese la nueva cantidad de la venta: "))
-            while nuevaCantidadVenta < 0 and nuevaCantidadVenta > 10:
-                nuevaCantidadVenta = int(input("Ingrese la nueva cantidad de la venta: "))
-            venta["Unidades vendidas"] = nuevaCantidadVenta
-            venta["Total de la venta"] = venta["Precio de venta"] * nuevaCantidadVenta
-
-
-    return listaVentas
             
 def OrdenarVentas(listaVentas):
 
@@ -275,7 +293,7 @@ def MostrarDatosDeVenta(listaVentas):
 def TotalMasAlto(listaVentas):
     if len(listaVentas) == 0:
         print("No existen ventas registradas en el sistemas")
-        return
+        return listaVentas
     listaVentas = OrdenamientoBrubuja(listaVentas)
     print(f"\n---INFORMACIÓN DE LA VENTA CON EL TOTAL MAS ALTO---\n")
 
@@ -289,23 +307,24 @@ def TotalMasAlto(listaVentas):
 def InformaciónEnArchivo(listaVentas):
     if len(listaVentas) == 0:
         print("No hay información que se puede almacenar dentro de un archivo, por favor, primero ingrese una venta")
-        return
+        return listaVentas
     #no entiendo que se almacena aca, si la informacion de al ventas (me inclino a pensar esto) o la informacion general de los productos
     #me parece correcto usar os pero supongo que es bueno consdeirar cambiarlo (quizas pc del profe o donde se vaya a exponer no se tenga instalada la libreria)
-    if  not os.path.exists("Ventas.txt"):
-        with open("Ventas.txt", "w") as archivo:
-            print("Se ha creado el archivo")
-    n = 1
+    # if  not os.path.exists("Ventas.txt"):
+    #     with open("Ventas.txt", "w") as archivo:
+    #         print("Se ha creado el archivo")
+
     with open("Ventas.txt", "w", encoding="utf-8") as archivo:
         for venta in listaVentas:
-            archivo.write(f"------INFORMACIÓN DE LA {n}° VENTA ------\n\n")
-            archivo.write(f"Servicio vendido: {venta['Servicio']}\n")
-            archivo.write(f"¿Tiene beneficio?: {venta['Beneficio']}\n")
-            archivo.write(f"Precio de la venta (por unidad): {venta['Precio de venta']}\n")
-            archivo.write(f"Cantidad de unidades vendidas: {venta['Unidades vendidas']}\n")
-            archivo.write(f"Monto total de la venta: {venta['Total de la venta']}\n")
-            archivo.write(f"Numero de venta: {venta['Codigo de venta']}\n\n")
-            n += 1
+
+            archivo.writelines(f"Servicio vendido: {venta['Servicio']}\n")
+            archivo.writelines(f"¿Tiene beneficio?: {venta['Beneficio']}\n")
+            archivo.writelines(f"Precio de la venta (por unidad): {venta['Precio de venta']}\n")
+            archivo.writelines(f"Cantidad de unidades vendidas: {venta['Unidades vendidas']}\n")
+            archivo.writelines(f"Monto total de la venta: {venta['Total de la venta']}\n")
+            archivo.writelines(f"Numero de venta: {venta['Codigo de venta']}\n\n")
+
+    archivo.close()
 
         
 
@@ -321,6 +340,11 @@ if __name__ == "__main__":
     Menu(serviciosSet, listaServicios, listaVentas)
 
 
+
+
+#posibles errores, deberia verificar si es que pueden salir precios con decimales, algunos me estan tirando eso en los prints
+#existe una posibilidad de mejor en TODAS las opciones de (si/no)
+#aun falta cambiar la funcion de modificar venta, pero en general, no parece demasiado complicado, nada mas hay que añadir algunas algoritmos
 
 
 #posibles errores, deberia verificar si es que pueden salir precios con decimales, algunos me estan tirando eso en los prints
